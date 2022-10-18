@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
-"""
-Documentation
-
-See also https://www.python-boilerplate.com/flask
-"""
 import os
 
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
 from logzero import logger
 
@@ -14,16 +9,11 @@ from logzero import logger
 def create_app(config=None):
     app = Flask(__name__)
 
-    # See http://flask.pocoo.org/docs/latest/config/
     app.config.update(dict(DEBUG=True))
     app.config.update(config or {})
 
-    # Setup cors headers to allow all domains
-    # https://flask-cors.readthedocs.io/en/latest/
     CORS(app)
 
-    # Definition of the routes. Put them into their own file. See also
-    # Flask Blueprints: http://flask.pocoo.org/docs/latest/blueprints
     @app.route("/")
     def hello_world():
         logger.info("/")
@@ -32,7 +22,7 @@ def create_app(config=None):
     @app.route("/foo/<someId>")
     def foo_url_arg(someId):
         logger.info("/foo/%s", someId)
-        return jsonify({"echo": someId})
+        return {"echo": someId}
 
     return app
 
