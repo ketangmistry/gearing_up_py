@@ -1,0 +1,13 @@
+bikes:
+  - unknown_unknown:
+      make: unknown
+      model: unknown
+      gears:
+        - name: big cog
+          position: front
+          component: cranks
+          teeth: 0
+        - name: small cog
+          position: front
+          component: cranks
+          teeth: 0

@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""
-Documentation
-
-See also https://www.python-boilerplate.com/flask
-"""
 import os
 
-from flask import Flask, jsonify
+import flask
+from flask import Flask, request
 from flask_cors import CORS
 from logzero import logger
 
@@ -14,25 +10,25 @@ from logzero import logger
 def create_app(config=None):
     app = Flask(__name__)
 
-    # See http://flask.pocoo.org/docs/latest/config/
     app.config.update(dict(DEBUG=True))
     app.config.update(config or {})
 
-    # Setup cors headers to allow all domains
-    # https://flask-cors.readthedocs.io/en/latest/
     CORS(app)
 
-    # Definition of the routes. Put them into their own file. See also
-    # Flask Blueprints: http://flask.pocoo.org/docs/latest/blueprints
-    @app.route("/")
-    def hello_world():
-        logger.info("/")
-        return "Hello World"
+    @app.route('/', methods=['GET'])
+    def root():
+        req_content_type = request.headers.get('Content-Type')
 
-    @app.route("/foo/<someId>")
-    def foo_url_arg(someId):
-        logger.info("/foo/%s", someId)
-        return jsonify({"echo": someId})
+        if req_content_type != 'application/json':
+            status = 400
+        else:
+            status = 200
+
+        res = flask.Response('root', status=status)
+        res.headers['app'] = __name__
+        logger.info('/ %s', req_content_type)
+
+        return res
 
     return app
 
