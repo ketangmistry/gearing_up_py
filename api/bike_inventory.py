@@ -6,6 +6,11 @@ BIKE_INVENTORY_FILE = 'bikes.yaml'
 
 
 def get() -> list:
+    """Get a list of bikes from file with the manufacturer URL enriched
+
+    Returns:
+        list: list of bikes with full details
+    """
     yaml_file = get_yaml_object_from_file(BIKE_INVENTORY_FILE)
 
     def updater(bike_wrapper):

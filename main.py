@@ -8,6 +8,14 @@ from logzero import logger
 
 
 def create_app(config=None):
+    """_summary_
+
+    Args:
+        config (_type_, optional): Everything to create a Flask app. Defaults to None.
+
+    Returns:
+        _type_: the Flask app
+    """
     app = Flask(__name__)
 
     app.config.update(dict(DEBUG=True))
