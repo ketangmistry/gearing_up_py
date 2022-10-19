@@ -21,12 +21,15 @@ def create_app(config=None):
 
         if req_content_type != 'application/json':
             status = 400
+            text = 'bad request'
+            logger.error('bad request because content type is "%s"',
+                         req_content_type)
         else:
             status = 200
+            text = 'all good'
 
-        res = flask.Response('root', status=status)
+        res = flask.Response(text, status=status)
         res.headers['app'] = __name__
-        logger.info('/ %s', req_content_type)
 
         return res
 
