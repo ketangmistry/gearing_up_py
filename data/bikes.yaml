@@ -1,7 +1,8 @@
 bikes:
-  - univega_rover_304:
+  - bike:
       manufacturer: Univega
       model: Rover 304
+      url: unknown
       gears:
         - name: big cog
           position: front
