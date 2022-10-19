@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import os
 
-from flask import Flask
+import flask
+from flask import Flask, request
 from flask_cors import CORS
 from logzero import logger
 
@@ -14,15 +15,20 @@ def create_app(config=None):
 
     CORS(app)
 
-    @app.route("/")
-    def hello_world():
-        logger.info("/")
-        return "Hello World"
+    @app.route('/', methods=['GET'])
+    def root():
+        req_content_type = request.headers.get('Content-Type')
 
-    @app.route("/foo/<someId>")
-    def foo_url_arg(someId):
-        logger.info("/foo/%s", someId)
-        return {"echo": someId}
+        if req_content_type != 'application/json':
+            status = 400
+        else:
+            status = 200
+
+        res = flask.Response('root', status=status)
+        res.headers['app'] = __name__
+        logger.info('/ %s', req_content_type)
+
+        return res
 
     return app
 
