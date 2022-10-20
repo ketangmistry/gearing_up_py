@@ -10,11 +10,7 @@ def app():
     return app.test_client()
 
 
-def test_root_route_good_header(app):
-    res = app.get('/', headers={'Content-Type': 'application/json'})
+def test_inventory_route_good(app):
+    res = app.get('/inventory', headers={'hello': 'world'})
     assert res.status_code == 200
 
-
-def test_root_route_bad_header(app):
-    res = app.get('/', headers={'Content-Type': 'text/html'})
-    assert res.status_code == 400
