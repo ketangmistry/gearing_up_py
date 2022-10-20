@@ -1,3 +1,6 @@
+from opentelemetry import trace
+from opentelemetry.sdk.trace import Tracer
+
 from data.bikes import get_yaml_object_from_file
 
 from services.bike_index_api import get_manufacturer_by_name
@@ -5,7 +8,7 @@ from services.bike_index_api import get_manufacturer_by_name
 BIKE_INVENTORY_FILE = 'bikes.yaml'
 
 
-def get() -> list:
+def get(tracer: Tracer) -> list:
     """Get a list of bikes from file with the manufacturer URL enriched
 
     Returns:
@@ -17,9 +20,18 @@ def get() -> list:
         bike_index_res = get_manufacturer_by_name(
             bike_wrapper['bike']['manufacturer']
         )
-        if bike_index_res['manufacturer']:
+
+        manu = bike_index_res['manufacturer']['name']
+
+        with tracer.start_as_current_span(
+            'get_' + str(manu) + '_data', kind=trace.SpanKind.CLIENT
+        ) as span:
+            span.set_attributes(
+                {'manufacturer': manu}
+            )
             url = bike_index_res['manufacturer']['company_url']
             bike_wrapper['bike']['url'] = url
+
         return bike_wrapper['bike']
 
     updates_bikes = [

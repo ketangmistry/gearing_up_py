@@ -1,4 +1,21 @@
 #!/usr/bin/env python3
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+)
+
+from opentelemetry import metrics
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import (
+    ConsoleMetricExporter,
+    PeriodicExportingMetricReader,
+)
+
+from opentelemetry.semconv.trace import SpanAttributes
+from opentelemetry.sdk.resources import Resource
+
 import os
 
 import flask
@@ -11,6 +28,22 @@ from api.bike_inventory import get as bike_index_get
 from ui.html_ui import get_html_table, get_html_header
 
 APP_NAME = 'gearing_up_py'
+
+# set the correct naming in otel
+resource = Resource.create({"service.name": APP_NAME})
+
+# getting the otel tracer setup asap
+provider = TracerProvider(resource=resource)
+processor = BatchSpanProcessor(ConsoleSpanExporter())
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer(__name__)
+
+# similarly getting the otel meter setup asap
+metric_reader = PeriodicExportingMetricReader(ConsoleMetricExporter())
+provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
+metrics.set_meter_provider(provider)
+meter = metrics.get_meter(__name__)
 
 
 def create_app(config=None):
@@ -45,8 +78,14 @@ def create_app(config=None):
             'model',
             'url'
         ]
-        bikes = bike_index_get()
-        doc = get_html_table(doc, TABLE_HEADERS, bikes)
+
+        with tracer.start_as_current_span(
+            'call_bike_index_api'
+        ) as parent_span:
+            parent_span.set_attribute(SpanAttributes.HTTP_METHOD, 'GET')
+            bikes = bike_index_get(tracer)
+            with tracer.start_as_current_span('render_inventory'):
+                doc = get_html_table(doc, TABLE_HEADERS, bikes)
 
         res = flask.Response(doc.getvalue(), status=status)
         res.headers['app'] = APP_NAME
