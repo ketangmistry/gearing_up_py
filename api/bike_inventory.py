@@ -17,7 +17,7 @@ def get(tracer: Tracer) -> list:
     yaml_file = get_yaml_object_from_file(BIKE_INVENTORY_FILE)
 
     def updater(bike_wrapper):
-        bike_index_res = get_manufacturer_by_name(
+        status_code, bike_index_res = get_manufacturer_by_name(
             bike_wrapper['bike']['manufacturer']
         )
 

@@ -38,5 +38,5 @@ def get_html_table(doc: Doc, headers: list, bikes: list) -> Doc:
 def get_html_header(doc: Doc):
     with doc.tag('head'):
         doc.stag('link', rel='stylesheet', href='css/styles.css')
-    
+
     return doc
