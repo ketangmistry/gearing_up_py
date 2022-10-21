@@ -1,5 +1,18 @@
 bikes:
   - bike:
+      manufacturer: Dummy
+      model: Dummy 001
+      url: unknown
+      gears:
+        - name: big cog
+          position: front
+          component: cranks
+          teeth: 0
+        - name: small cog
+          position: front
+          component: cranks
+          teeth: 0
+  - bike:
       manufacturer: Univega
       model: Rover 304
       url: unknown

@@ -11,7 +11,7 @@ def get_manufacturer_by_name(name: str):
         name (str): manufacturer name
 
     Returns:
-        json: JSON payload returned from Bike Index
+        json: Tuple[int, json]
     """
     resource = 'manufacturers'
     response = requests.get(BIKE_INDEX_ENDPOINT + resource + '/' + name)
