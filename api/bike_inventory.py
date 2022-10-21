@@ -21,7 +21,7 @@ def get(tracer: Tracer) -> list:
         manu = bike_wrapper['bike']['manufacturer']
 
         with tracer.start_as_current_span(
-            'get_' + str(manu) + '_data', kind=trace.SpanKind.CLIENT
+            'lookup_bike_index', kind=trace.SpanKind.CLIENT
         ) as span:
             status_code, bike_index_res = get_manufacturer_by_name(
                 manu
@@ -31,12 +31,23 @@ def get(tracer: Tracer) -> list:
                 {'manufacturer': manu}
             )
 
-            if status_code >= 400:
+            if status_code >= 400 and status_code < 500:
                 span.set_status(trace.Status(trace.StatusCode.ERROR))
-                url = 'not found!'
-            else:
+                span.record_exception(bike_index_res['error'])
+                url = 'Manufacturer not found, no URL!'
+            elif status_code < 300:
                 span.set_status(trace.Status(trace.StatusCode.OK))
                 url = bike_index_res['manufacturer']['company_url']
+            elif status_code >= 500:
+                span.set_status(trace.Status(trace.StatusCode.ERROR))
+                span.record_exception(
+                    'Got a status code of 500 or above, remote server error!'
+                )
+                url = 'remote server error!'
+            else:
+                span.set_status(trace.Status(trace.StatusCode.ERROR))
+                span.record_exception('Something weird happened!')
+                url = 'something weird happened!'
 
             bike_wrapper['bike']['url'] = url
 

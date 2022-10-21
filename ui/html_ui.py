@@ -21,8 +21,8 @@ def get_html_table(doc: Doc, headers: list, bikes: list) -> Doc:
     def add_row(doc, row):
         with doc.tag('tr'):
             for _, value in row.items():
-                with doc.tag('td'):
-                    if isinstance(value, list) is False:
+                if isinstance(value, list) is False:
+                    with doc.tag('td'):
                         doc.text(value)
 
     with doc.tag('table', id='bikes_inventory'):

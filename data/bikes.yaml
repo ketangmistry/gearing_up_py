@@ -1,7 +1,7 @@
 bikes:
   - bike:
-      manufacturer: Dummy
-      model: Dummy 001
+      manufacturer: Cross
+      model: Duke
       url: unknown
       gears:
         - name: big cog

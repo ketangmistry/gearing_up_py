@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-)
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from prometheus_client import start_http_server
 
 from opentelemetry import metrics
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import (
-    ConsoleMetricExporter,
-    PeriodicExportingMetricReader,
-)
+from opentelemetry.exporter.prometheus import PrometheusMetricReader
 
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.sdk.resources import Resource
@@ -34,27 +31,37 @@ resource = Resource.create({"service.name": APP_NAME})
 
 # getting the otel tracer setup asap
 provider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(ConsoleSpanExporter())
+processor = BatchSpanProcessor(OTLPSpanExporter())
 provider.add_span_processor(processor)
 trace.set_tracer_provider(provider)
-tracer = trace.get_tracer(__name__)
+tracer = trace.get_tracer('opentelemetry.instrumentation.flask')
+
+# start Prometheus client
+start_http_server(port=8000, addr="localhost")
 
 # similarly getting the otel meter setup asap
-metric_reader = PeriodicExportingMetricReader(ConsoleMetricExporter())
+metric_reader = PrometheusMetricReader()
 provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
 metrics.set_meter_provider(provider)
-meter = metrics.get_meter(__name__)
+meter = metrics.get_meter('opentelemetry.instrumentation.flask')
+
+# define metrics to collect
+inventory_request_counter = meter.create_counter(
+    "inventory_request",
+    unit="num",
+    description="Number of requests to inventory API route"
+)
 
 
 def create_app(config=None):
-    """_summary_
+    """Create a Flask web app
 
     Args:
         config (_type_, optional): Everything to create a Flask app.
         Defaults to None.
 
     Returns:
-        _type_: the Flask app
+        _type_: the Flask app object
     """
     app = Flask(__name__)
 
@@ -68,7 +75,9 @@ def create_app(config=None):
         return send_from_directory('css', 'styles.css')
 
     @app.route('/inventory', methods=['GET'])
-    def root():
+    def inventory():
+        inventory_request_counter.add(1)
+
         doc, tag, text, line = Doc().ttl()
         doc = get_html_header(doc)
 
@@ -96,6 +105,6 @@ def create_app(config=None):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8080))
     app = create_app()
     app.run(host="0.0.0.0", port=port)
