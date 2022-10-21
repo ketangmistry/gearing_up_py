@@ -33,5 +33,5 @@ jobs:
 
     - name: Test with pytest
       run: |
-        cd $GITHUB_WORKSPACE/python
+        cd $GITHUB_WORKSPACE
         pytest -v -p no:warnings
